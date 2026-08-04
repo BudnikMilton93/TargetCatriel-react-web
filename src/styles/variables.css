@@ -1,0 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+:root {
+  --color-primary: #1f3864;
+  --color-secondary: #4e8b6b;
+  --color-accent: #9fc4b0;
+  --color-primary-rgb: 31, 56, 100;
+  --color-secondary-rgb: 78, 139, 107;
+  --color-bg: #f5f8fb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eef5f1;
+  --color-text: #1b2738;
+  --color-muted: #3f4d5f;
+  --color-danger: #b91c1c;
+  --color-border: #cdd7e6;
+
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "Nunito", sans-serif;
+
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --shadow-soft: 0 16px 40px rgba(31, 56, 100, 0.14);
+}
