@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: [staging, main]
+  pull_request:
+  workflow_call:
+
+jobs:
+  checks:
+    name: Lint, typecheck, tests y build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar cliente de Prisma
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck (api/, scripts/, prisma/)
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build de producción
+        run: npm run build
