@@ -548,15 +548,15 @@ export const usuariosService = {
     // TODO: GET /api/usuarios
     return [];
   },
-  getById: async (id) => {
+  getById: async (_id) => {
     // TODO: GET /api/usuarios/:id
     return {};
   },
-  getRoles: async (usuarioId) => {
+  getRoles: async (_usuarioId) => {
     // TODO: GET /api/usuarios/:id/roles
     return [];
   },
-  asignarRol: async (usuarioId, rolId) => {
+  asignarRol: async (_usuarioId, _rolId) => {
     // TODO: POST /api/usuarios/:id/roles/:rolId
     return {};
   },

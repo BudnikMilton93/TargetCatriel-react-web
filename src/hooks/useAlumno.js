@@ -107,6 +107,10 @@ export function useAlumno() {
       }
     });
 
+    // Reinicia los drafts/visibilidades editables cada vez que cambia la lista de
+    // respuestas del backend (no es estado derivado puro: el alumno los edita
+    // localmente entre renders, ver handleDraftChange/handleVisibilidadChange más abajo).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDrafts(nextDrafts);
     setVisibilidades(nextVisibilidades);
   }, [respuestas]);

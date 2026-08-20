@@ -264,7 +264,6 @@ export default function DashboardProfesor() {
     invitarAlumno,
     removerAlumno,
     loading: actionLoading,
-    error: actionError,
   } = useProfessor();
 
   const [bloques, setBloques] = useState([]);
@@ -420,8 +419,9 @@ export default function DashboardProfesor() {
     }
   };
 
-  // Cargar datos al montar el componente
+  // Cargar datos al montar el componente (fetch asíncrono, no estado derivado)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarDatos();
   }, []);
 
@@ -441,13 +441,6 @@ export default function DashboardProfesor() {
   // Handlers de acciones
   const handleCrearBloque = () => {
     setBloqueEnEdicion(null);
-    setModalOpen(true);
-  };
-
-  // Abrir modal para editar bloque
-  const handleEditarBloque = (e, bloque) => {
-    e.stopPropagation();
-    setBloqueEnEdicion(bloque);
     setModalOpen(true);
   };
 

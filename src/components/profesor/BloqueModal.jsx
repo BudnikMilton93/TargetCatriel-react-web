@@ -41,8 +41,11 @@ export default function BloqueModal({ isOpen, bloque, onClose, onSave, loading }
 
   const [errores, setErrores] = useState({});
 
+  // Reinicia el formulario editable cada vez que cambia el bloque a editar o se
+  // abre/cierra el modal (no es estado derivado puro: el usuario lo edita luego).
   useEffect(() => {
     if (bloque) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         nivel: bloque.nivel || '',
         dias: bloque.dias || '',
