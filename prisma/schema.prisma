@@ -32,6 +32,7 @@ model Usuario {
   viajes            Viaje[]            @relation("AutorViajes")
   galeria           Galeria[]          @relation("AutorGaleria")
   sobreNosotros     SobreNosotros[]    @relation("AutorSobreNosotros")
+  registrosAuditoria RegistroAuditoria[]
 
   @@map("usuarios")
 }
@@ -280,4 +281,27 @@ model SobreNosotros {
   autor Usuario @relation("AutorSobreNosotros", fields: [autorId], references: [id], onDelete: Cascade)
 
   @@map("sobre_nosotros")
+}
+
+// ============================================================================
+// AUDITORÍA
+// ============================================================================
+
+// Registro histórico de acciones sobre entidades del sistema. Se conserva
+// aunque el usuario que la originó sea eliminado (onDelete: SetNull), ya que
+// es un requisito de trazabilidad/compliance que no debe perderse con la baja
+// de un usuario.
+model RegistroAuditoria {
+  id        String   @id @default(cuid())
+  usuarioId String?
+  accion    String   // "CREAR", "ACTUALIZAR", "ELIMINAR", "LEER"
+  entidad   String   // "BLOQUE", "MODULO", "USUARIO", "NOTICIA", etc.
+  detalles  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId])
+  @@index([createdAt])
+  @@map("registros_auditoria")
 }

@@ -90,7 +90,13 @@ export function withAuth(
 }
 
 /**
- * Log de auditoría para acciones
+ * Log de auditoría para acciones.
+ * Persiste el registro en la tabla `registros_auditoria`. Un fallo al
+ * escribir la auditoría nunca debe interrumpir la operación de negocio que
+ * la originó: se captura y se loguea el error, sin propagar la excepción.
+ *
+ * `detalles` queda persistido de forma permanente (a diferencia del antiguo
+ * `console.log`): no incluir secretos, contraseñas, tokens ni PII innecesaria.
  */
 export async function logAudit(
   usuarioId: string,
@@ -98,6 +104,19 @@ export async function logAudit(
   entidad: string,
   detalles: any = {},
 ) {
-  console.log(`[AUDIT] ${new Date().toISOString()} | Usuario: ${usuarioId} | Acción: ${accion} | Entidad: ${entidad}`, detalles);
-  // En producción, guardar en tabla de auditoría
+  try {
+    await db.registroAuditoria.create({
+      data: {
+        usuarioId,
+        accion,
+        entidad,
+        detalles,
+      },
+    });
+  } catch (error) {
+    console.error(
+      `[AUDIT] Error al persistir auditoría | Usuario: ${usuarioId} | Acción: ${accion} | Entidad: ${entidad}`,
+      error,
+    );
+  }
 }

@@ -60,7 +60,6 @@ export default withAuth(async (req: AuthenticatedRequest, res: ServerResponse) =
 
       await logAudit(req.user!.id, 'CREAR', 'USUARIO', {
         usuarioId: nuevoUsuario.id,
-        email,
       });
 
       return sendSuccess(res, nuevoUsuario, 201, 'Usuario creado exitosamente');
