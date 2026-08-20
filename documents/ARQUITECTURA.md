@@ -47,6 +47,9 @@ Flujo de trabajo:
 4. `npx prisma migrate deploy` (apuntando a `.env.production`) — aplica las mismas
    migraciones en la base remota al momento de desplegar
 
+El paso 4 hoy lo automatiza el pipeline de CI/CD (ver `documents/CI_CD.md`) al desplegar
+a staging o producción — no hace falta correrlo a mano.
+
 ## Stack técnico
 - Frontend: React con Vite, React Router DOM
 - Backend: Vercel Functions (serverless) en TypeScript — cada endpoint en `/api`

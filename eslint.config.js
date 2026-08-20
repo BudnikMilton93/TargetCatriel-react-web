@@ -17,5 +17,10 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // Permite parámetros prefijados con `_` en stubs todavía no implementados
+      // (ej. src/services/api.js) sin tener que quitarles el nombre documentado.
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
 ])

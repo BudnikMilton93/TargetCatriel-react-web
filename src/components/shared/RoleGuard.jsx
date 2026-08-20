@@ -1,8 +1,8 @@
 import { useAuth } from '../../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 
-const RoleGuard = ({ children, requiredRoles, requireAny = true }) => {
-  const { user, loading, isAuthenticated, hasAnyRole } = useAuth();
+const RoleGuard = ({ children, requiredRoles }) => {
+  const { loading, isAuthenticated, hasAnyRole } = useAuth();
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Cargando...</div>;
