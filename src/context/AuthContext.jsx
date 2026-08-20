@@ -1,30 +1,58 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
 
+const ACTIVE_DASHBOARD_ROLE_KEY = 'targetActiveDashboardRole';
+const dashboardRoleConfig = {
+  profesor: { key: 'profesor', label: 'Profesor', route: '/dashboard/profesor' },
+  alumno: { key: 'alumno', label: 'Alumno', route: '/dashboard/alumno' },
+  marketing: { key: 'marketing', label: 'Marketing', route: '/dashboard/marketing' },
+  admin: { key: 'admin', label: 'Administrador', route: '/dashboard/admin' },
+  administrador: { key: 'admin', label: 'Administrador', route: '/dashboard/admin' },
+};
+
+const getDashboardOptions = (roles = []) => {
+  const options = roles
+    .map((role) => dashboardRoleConfig[role])
+    .filter(Boolean);
+
+  return options.filter(
+    (option, index, allOptions) =>
+      allOptions.findIndex((entry) => entry.key === option.key) === index
+  );
+};
+
 // Mock Supabase Auth - Simulación local para desarrollo
+// Los IDs deben coincidir con los usuarios sembrados en la base de datos
+// (ver prisma/seed.ts y api/README.md) para que el token Bearer sea válido
+// contra la API real.
 const mockUsers = {
-  'profesor@target.com': { 
-    id: 'user-1', 
-    email: 'profesor@target.com', 
-    name: 'Juan Profesor',
-    roles: ['profesor'] 
+  'maria@target.com': {
+    id: 'cmsg6edcf00078r2uobml8udi',
+    email: 'maria@target.com',
+    nombre: 'Prof. María García',
+    name: 'Prof. María García',
+    roles: ['profesor']
   },
-  'alumno@target.com': { 
-    id: 'user-2', 
-    email: 'alumno@target.com', 
-    name: 'María Alumna',
-    roles: ['alumno'] 
+  'juan@student.com': {
+    id: 'cmsg6edcg000a8r2u80kyl8l2',
+    email: 'juan@student.com',
+    nombre: 'Juan Pérez',
+    name: 'Juan Pérez',
+    roles: ['alumno']
   },
-  'admin@target.com': { 
-    id: 'user-3', 
-    email: 'admin@target.com', 
-    name: 'Carlos Admin',
-    roles: ['admin', 'profesor'] 
+  'admin@target.com': {
+    id: 'cmsg6edcc00048r2uktg2ho91',
+    email: 'admin@target.com',
+    nombre: 'Admin Target',
+    name: 'Admin Target',
+    roles: ['administrador', 'profesor']
   },
-  'marketing@target.com': { 
-    id: 'user-4', 
-    email: 'marketing@target.com', 
-    name: 'Laura Marketing',
-    roles: ['marketing', 'alumno'] 
+  'marketing@target.com': {
+    id: 'cmsg6edcj000g8r2uxnn8lbbp',
+    email: 'marketing@target.com',
+    nombre: 'Marketing Team',
+    name: 'Marketing Team',
+    roles: ['marketing', 'alumno']
   },
 };
 
@@ -34,6 +62,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeDashboardRole, setActiveDashboardRoleState] = useState(
+    () => localStorage.getItem(ACTIVE_DASHBOARD_ROLE_KEY) || null
+  );
 
   // Simular verificación de sesión al cargar
   useEffect(() => {
@@ -42,6 +73,19 @@ export const AuthProvider = ({ children }) => {
       if (savedSession) {
         const userData = JSON.parse(savedSession);
         setUser(userData);
+
+        const availableOptions = getDashboardOptions(userData.roles);
+        const savedRole = localStorage.getItem(ACTIVE_DASHBOARD_ROLE_KEY);
+
+        if (savedRole && availableOptions.some((option) => option.key === savedRole)) {
+          setActiveDashboardRoleState(savedRole);
+        } else if (availableOptions.length === 1) {
+          localStorage.setItem(ACTIVE_DASHBOARD_ROLE_KEY, availableOptions[0].key);
+          setActiveDashboardRoleState(availableOptions[0].key);
+        } else {
+          localStorage.removeItem(ACTIVE_DASHBOARD_ROLE_KEY);
+          setActiveDashboardRoleState(null);
+        }
       }
       setLoading(false);
     }, 500);
@@ -50,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Mock login - En producción será real con Supabase Auth
-  const login = async (email, password) => {
+  const login = async (email) => {
     setLoading(true);
     setError(null);
     
@@ -58,8 +102,19 @@ export const AuthProvider = ({ children }) => {
       // Simulación: cualquier contraseña vale
       if (mockUsers[email]) {
         const userData = mockUsers[email];
+        const availableOptions = getDashboardOptions(userData.roles);
+
         setUser(userData);
         localStorage.setItem('targetSession', JSON.stringify(userData));
+
+        if (availableOptions.length === 1) {
+          localStorage.setItem(ACTIVE_DASHBOARD_ROLE_KEY, availableOptions[0].key);
+          setActiveDashboardRoleState(availableOptions[0].key);
+        } else {
+          localStorage.removeItem(ACTIVE_DASHBOARD_ROLE_KEY);
+          setActiveDashboardRoleState(null);
+        }
+
         return userData;
       } else {
         throw new Error('Usuario no encontrado');
@@ -75,7 +130,9 @@ export const AuthProvider = ({ children }) => {
   // Mock logout
   const logout = () => {
     setUser(null);
+    setActiveDashboardRoleState(null);
     localStorage.removeItem('targetSession');
+    localStorage.removeItem(ACTIVE_DASHBOARD_ROLE_KEY);
   };
 
   // Verificar si tiene un rol específico
@@ -88,6 +145,33 @@ export const AuthProvider = ({ children }) => {
     return user?.roles?.some(role => roles.includes(role));
   };
 
+  const dashboardOptions = getDashboardOptions(user?.roles);
+
+  const setActiveDashboardRole = (role) => {
+    if (!dashboardOptions.some((option) => option.key === role)) {
+      return false;
+    }
+
+    localStorage.setItem(ACTIVE_DASHBOARD_ROLE_KEY, role);
+    setActiveDashboardRoleState(role);
+    return true;
+  };
+
+  const resolveDashboardPath = () => {
+    if (activeDashboardRole) {
+      const selectedOption = dashboardOptions.find((option) => option.key === activeDashboardRole);
+      if (selectedOption) {
+        return selectedOption.route;
+      }
+    }
+
+    if (dashboardOptions.length === 1) {
+      return dashboardOptions[0].route;
+    }
+
+    return null;
+  };
+
   const value = {
     user,
     loading,
@@ -96,6 +180,10 @@ export const AuthProvider = ({ children }) => {
     logout,
     hasRole,
     hasAnyRole,
+    dashboardOptions,
+    activeDashboardRole,
+    setActiveDashboardRole,
+    resolveDashboardPath,
     isAuthenticated: !!user,
   };
 

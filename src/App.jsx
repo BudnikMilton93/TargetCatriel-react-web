@@ -12,6 +12,7 @@ import Alumnos from "./pages/Alumnos";
 import SobreNosotros from "./pages/SobreNosotros";
 import Contacto from "./pages/Contacto";
 import Login from "./pages/Login";
+import SeleccionarPanel from "./pages/SeleccionarPanel";
 
 // Dashboards
 import DashboardProfesor from "./components/dashboard/profesor/DashboardProfesor";
@@ -37,6 +38,14 @@ function App() {
           <Route path="/sobre-nosotros" element={<SobreNosotros />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/seleccionar-panel"
+            element={
+              <RoleGuard requiredRoles={['profesor', 'alumno', 'marketing', 'admin', 'administrador']}>
+                <SeleccionarPanel />
+              </RoleGuard>
+            }
+          />
 
           {/* Rutas Privadas - Dashboard Profesor */}
           <Route 

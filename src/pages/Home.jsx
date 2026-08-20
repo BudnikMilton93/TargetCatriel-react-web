@@ -4,15 +4,13 @@ import ClasesOferta from "../components/home/ClasesOferta";
 import AlumnoJourney from "../components/home/AlumnoJourney";
 import NoticiasDestacadas from "../components/home/NoticiasDestacadas";
 import GaleriaDestacada from "../components/home/GaleriaDestacada";
-import { getContent } from "../services/contentService";
+import { getContent, subscribeContent } from "../services/contentService";
 
 export default function Home() {
   const [content, setContent] = useState(getContent());
 
   useEffect(() => {
-    const onStorage = () => setContent(getContent());
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    return subscribeContent(() => setContent(getContent()));
   }, []);
 
   return (

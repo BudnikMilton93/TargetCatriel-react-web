@@ -11,7 +11,7 @@ const navItems = [
 ];
 
 export default function Header() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, resolveDashboardPath } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,15 +20,8 @@ export default function Header() {
   };
 
   const handleGoToDashboard = () => {
-    if (user?.roles?.includes("profesor")) {
-      navigate("/dashboard/profesor");
-    } else if (user?.roles?.includes("alumno")) {
-      navigate("/dashboard/alumno");
-    } else if (user?.roles?.includes("admin")) {
-      navigate("/dashboard/admin");
-    } else if (user?.roles?.includes("marketing")) {
-      navigate("/dashboard/marketing");
-    }
+    const dashboardPath = resolveDashboardPath();
+    navigate(dashboardPath || "/seleccionar-panel");
   };
 
   return (

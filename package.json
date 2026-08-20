@@ -5,17 +5,27 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "tsx scripts/dev-api-server.ts",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:prod": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "db:seed": "node --loader ts-node/esm prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "^5.19.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^20.19.43",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
@@ -23,6 +33,10 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
+    "prisma": "^5.19.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.11",
+    "typescript": "^5.6.3",
     "vite": "^8.1.1"
   }
 }

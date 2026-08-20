@@ -120,3 +120,36 @@
 .text-xs {
   font-size: 0.8rem;
 }
+
+.role-selector-list {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+.role-selector-button {
+  width: 100%;
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-selector-button:hover {
+  border-color: #1F3864;
+  background: #eff6ff;
+}
+
+.role-selector-button strong {
+  display: block;
+  color: #1F3864;
+  margin-bottom: 0.35rem;
+}
+
+.role-selector-button span {
+  color: #475569;
+  font-size: 0.9rem;
+}

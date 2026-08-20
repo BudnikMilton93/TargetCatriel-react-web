@@ -1,4 +1,4 @@
-# Prompt para agente de VSCode — Target, Escuela de Inglés (React + Backend)
+# Arquitectura y modelo de datos — Target, Escuela de Inglés (React + Backend)
 
 ## Contexto del proyecto
 Sitio web y plataforma educativa para Target, escuela de inglés fundada en 1994, que
@@ -51,6 +51,8 @@ Flujo de trabajo:
 - Frontend: React con Vite, React Router DOM
 - Backend: Vercel Functions (serverless) en TypeScript — cada endpoint en `/api`
 - Base de datos: PostgreSQL alojado en Supabase
+- Media (estrategia hibrida): Cloudinary para imagenes, Instagram por URL para reels,
+  Supabase Storage para videos propios excepcionales
 - ORM: Prisma, para tipado automático del esquema relacional y migraciones
 - Conexión a base de datos: usar el connection pooler de Supabase (PgBouncer), NO
   conexión directa — las functions serverless abren una conexión nueva por request y
@@ -135,6 +137,24 @@ viajes (id, autor_id FK, destino, fecha_inicio, fecha_fin, nivel_recomendado,
 galeria (id, autor_id FK, tipo, url, orden)
 sobre_nosotros (id, autor_id FK, contenido, imagen)
 ```
+
+### Estrategia multimedia para galeria (implementacion Fase 4)
+
+- `galeria` se administra por metadata; los archivos no pasan por la API de Vercel.
+- Origenes permitidos:
+  - `cloudinary_image` para fotos (noticias, viajes, galeria)
+  - `instagram_reel` para videos ya publicados en Instagram (guardar URL)
+  - `supabase_video` para videos propios como excepcion
+- Campos recomendados para evolucion del modelo:
+  - `source_type`, `provider_id`, `thumbnail_url`, `bytes`, `duration_seconds`, `status`
+- Limites de operacion iniciales:
+  - maximo 24 videos activos en galeria
+  - maximo 6 videos destacados en home
+  - para `supabase_video`: maximo 60 segundos y 25 MB
+- Validaciones minimas de backend:
+  - dominio permitido para reels: `instagram.com`
+  - `mimeType` permitido para videos propios: `video/mp4`, `video/quicktime`
+  - rechazo de nuevas altas cuando se supera el tope de videos activos
 
 Estas tablas solo se relacionan con `usuarios` (autor_id). No tienen ninguna relación
 con las tablas del núcleo académico — el rol Marketing nunca necesita acceder a ellas.
@@ -236,24 +256,3 @@ Ejemplos:
       variables.css
       global.css
 ```
-
-## Alcance de esta etapa
-- Implementar el modelo de datos completo descripto arriba en PostgreSQL
-- Implementar autenticación real con roles combinables (no simulada)
-- Implementar el CRUD de contenido público (rol Marketing) primero, por ser lo más simple
-- Implementar el flujo de Bloque → Módulo → Contenido → Respuesta para profesor y alumno
-- Implementar el panel de administrador con la vista consolidada de alumnos y bloques
-- Dejar preparado (sin implementar aún) el punto de extensión para Fase 2: login de
-  tutores, gamificación, biblioteca de recursos
-
-## Primera tarea a ejecutar
-1. Levantar Postgres local con `docker-compose.yml` y validar la conexión
-2. Definir el esquema en `schema.prisma` según el modelo descripto y correr
-   `prisma migrate dev` contra la base local de Docker
-3. Configurar Supabase Auth en el frontend y crear la función `/api/auth` de apoyo
-   para vincular el usuario autenticado con su fila en `usuarios` y `usuario_roles`
-4. Inicializar el frontend con Vite + React, estructura de carpetas y routing
-5. Implementar el flujo completo de un caso simple de punta a punta: un profesor crea
-   un bloque, crea un módulo, lo habilita, un alumno lo ve y responde — probando así
-   que las Vercel Functions, el pooler y la autenticación funcionan juntos correctamente
-6. Implementar el CRUD de contenido público (Marketing) y su reflejo en el sitio

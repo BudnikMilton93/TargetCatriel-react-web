@@ -1,16 +1,79 @@
-# React + Vite
+# Target Catriel - React Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Proyecto fullstack de una escuela de inglés con frontend React + Vite, backend API bajo `api/` y base de datos PostgreSQL con Prisma.
 
-Currently, two official plugins are available:
+## Estado actual
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+El proyecto ya tiene implementado lo siguiente:
 
-## React Compiler
+- Frontend de páginas públicas y dashboards por rol
+- Sistema mock de autenticación con roles
+- Dashboard para profesor, alumno, admin y marketing
+- Backend de APIs REST bajo `/api`
+- Modelo de datos Prisma con migración inicial y seed
+- Contenedores Docker para PostgreSQL local
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+La parte aún pendiente es la integración final entre algunos paneles y la API real, junto con refinamientos UX y pruebas end-to-end.
 
-## Expanding the ESLint configuration
+## Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React 19 + Vite
+- React Router
+- Prisma + PostgreSQL
+- TypeScript para endpoints de API
+- Docker Compose para base de datos local
+
+## Estructura principal
+
+```bash
+src/                  # frontend
+api/                  # endpoints serverless / vercel-like
+prisma/               # schema y seed
+public/               # assets estáticos
+scripts/              # utilidades de desarrollo
+
+documents/            # roadmap y documentación del proyecto
+```
+
+## Requisitos
+
+- Node.js 20+
+- npm
+- Docker Desktop o Docker Engine
+
+## Arranque rápido
+
+```bash
+npm install
+npm run db:up
+npx prisma generate
+npx prisma migrate deploy
+npm run dev
+npm run dev:api
+```
+
+## Usuarios de prueba
+
+Los usuarios de prueba están definidos en `src/context/AuthContext.jsx` y corresponden a los IDs de la base de datos semilla:
+
+- `maria@target.com` → Profesor
+- `juan@student.com` → Alumno
+- `admin@target.com` → Administrador
+- `marketing@target.com` → Marketing
+
+Cualquier contraseña funciona en el mock de autenticación.
+
+## Documentación del proyecto
+
+- [documents/ROADMAP_INDEX.md](documents/ROADMAP_INDEX.md)
+- [documents/ROADMAP_PROFESOR.md](documents/ROADMAP_PROFESOR.md)
+- [documents/ROADMAP_ALUMNO.md](documents/ROADMAP_ALUMNO.md)
+- [documents/ROADMAP_ADMINISTRADOR.md](documents/ROADMAP_ADMINISTRADOR.md)
+- [documents/ROADMAP_MARKETING.md](documents/ROADMAP_MARKETING.md)
+- [documents/TESTING.md](documents/TESTING.md) — guía de pruebas funcionales y referencia de endpoints (cURL)
+- [documents/ARQUITECTURA.md](documents/ARQUITECTURA.md) — modelo de datos y arquitectura del proyecto
+- [api/README.md](api/README.md)
+
+## Importante
+
+Este README reemplaza la plantilla inicial de Vite y refleja el estado real del proyecto en agosto de 2026.

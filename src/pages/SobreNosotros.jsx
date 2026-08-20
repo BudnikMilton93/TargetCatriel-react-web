@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { getSobreNosotros } from "../services/contentService";
+import { getSobreNosotros, subscribeContent } from "../services/contentService";
 
 export default function SobreNosotros() {
   const [sobreNosotros, setSobreNosotros] = useState(getSobreNosotros());
 
   useEffect(() => {
-    const onStorage = () => setSobreNosotros(getSobreNosotros());
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    return subscribeContent(() => setSobreNosotros(getSobreNosotros()));
   }, []);
 
   return (

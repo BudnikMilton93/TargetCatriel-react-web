@@ -1,0 +1,283 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// AUTENTICACIÓN Y ROLES
+// ============================================================================
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String   @unique
+  passwordHash String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  roles             UsuarioRol[]
+  alumniPerfil      AlumnoPerfil?
+  bloques           Bloque[]           @relation("ProfesorBloques")
+  modulosCreados    Modulo[]           @relation("CreadorModulos")
+  noticias          Noticia[]          @relation("AutorNoticias")
+  viajes            Viaje[]            @relation("AutorViajes")
+  galeria           Galeria[]          @relation("AutorGaleria")
+  sobreNosotros     SobreNosotros[]    @relation("AutorSobreNosotros")
+
+  @@map("usuarios")
+}
+
+model Rol {
+  id   String @id @default(cuid())
+  nombre String @unique // "administrador", "profesor", "alumno", "marketing"
+
+  // Relaciones
+  usuarios UsuarioRol[]
+
+  @@map("roles")
+}
+
+model UsuarioRol {
+  id        String @id @default(cuid())
+  usuarioId String
+  rolId     String
+  createdAt DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  rol     Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, rolId])
+  @@map("usuario_roles")
+}
+
+// ============================================================================
+// PERFILES DE ALUMNO
+// ============================================================================
+
+model AlumnoPerfil {
+  usuarioId          String    @id
+  fechaNacimiento    DateTime?
+  telefono           String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  bloques BloqueAlumno[]
+  tutores AlumnoTutor[]
+  respuestas Respuesta[]
+  asistencias Asistencia[]
+
+  @@map("alumno_perfiles")
+}
+
+model Tutor {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String
+  telefono  String?
+  relacion  String   // "padre", "madre", "tutor", etc.
+  createdAt DateTime @default(now())
+
+  alumnos AlumnoTutor[]
+
+  @@map("tutores")
+}
+
+model AlumnoTutor {
+  id        String @id @default(cuid())
+  alumnoId  String
+  tutorId   String
+  createdAt DateTime @default(now())
+
+  alumno AlumnoPerfil @relation(fields: [alumnoId], references: [usuarioId], onDelete: Cascade)
+  tutor  Tutor        @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([alumnoId, tutorId])
+  @@map("alumno_tutores")
+}
+
+// ============================================================================
+// NÚCLEO ACADÉMICO
+// ============================================================================
+
+model Bloque {
+  id            String    @id @default(cuid())
+  profesorId    String
+  nivel         String    // "A1", "A2", "B1", etc.
+  dias          String    // "Lunes y Miércoles" o formato JSON array
+  horaInicio    DateTime
+  horaFin       DateTime
+  anio          Int       // año lectivo
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profesor      Usuario    @relation("ProfesorBloques", fields: [profesorId], references: [id], onDelete: Cascade)
+  alumnos       BloqueAlumno[]
+  modulos       Modulo[]
+  recursos      BloqueRecurso[]
+
+  @@map("bloques")
+}
+
+model BloqueAlumno {
+  id                String   @id @default(cuid())
+  bloqueId          String
+  alumnoId          String
+  fechaInvitacion   DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  bloque Bloque       @relation(fields: [bloqueId], references: [id], onDelete: Cascade)
+  alumno AlumnoPerfil @relation(fields: [alumnoId], references: [usuarioId], onDelete: Cascade)
+
+  @@unique([bloqueId, alumnoId])
+  @@map("bloque_alumnos")
+}
+
+model BloqueRecurso {
+  id        String   @id @default(cuid())
+  bloqueId  String
+  tipo      String   // "texto", "pdf", "link", "video", etc.
+  contenido String   // URL o contenido
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bloque Bloque @relation(fields: [bloqueId], references: [id], onDelete: Cascade)
+
+  @@map("bloque_recursos")
+}
+
+model Modulo {
+  id        String   @id @default(cuid())
+  bloqueId  String
+  creadoPor String
+  fecha     DateTime
+  estado    String   @default("borrador") // "borrador", "oculto", "habilitado"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bloque    Bloque    @relation(fields: [bloqueId], references: [id], onDelete: Cascade)
+  creador   Usuario   @relation("CreadorModulos", fields: [creadoPor], references: [id], onDelete: Cascade)
+  contenidos Contenido[]
+  asistencias Asistencia[]
+
+  @@map("modulos")
+}
+
+model Contenido {
+  id        String   @id @default(cuid())
+  moduloId  String
+  tipo      String   // "texto", "actividad", "pregunta", "audio"
+  contenido String
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  modulo    Modulo     @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  respuestas Respuesta[]
+
+  @@map("contenidos")
+}
+
+model Respuesta {
+  id         String   @id @default(cuid())
+  contenidoId String
+  alumnoId   String
+  respuesta  String
+  visibilidad String @default("privado") // "privado", "compartido"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  contenido Contenido    @relation(fields: [contenidoId], references: [id], onDelete: Cascade)
+  alumno    AlumnoPerfil @relation(fields: [alumnoId], references: [usuarioId], onDelete: Cascade)
+
+  @@map("respuestas")
+}
+
+model Asistencia {
+  id        String   @id @default(cuid())
+  moduloId  String
+  alumnoId  String
+  presente  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  modulo Modulo       @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  alumno AlumnoPerfil @relation(fields: [alumnoId], references: [usuarioId], onDelete: Cascade)
+
+  @@unique([moduloId, alumnoId])
+  @@map("asistencias")
+}
+
+// ============================================================================
+// CONTENIDO PÚBLICO (Marketing)
+// ============================================================================
+
+model Noticia {
+  id        String   @id @default(cuid())
+  autorId   String
+  titulo    String
+  cuerpo    String
+  imagen    String?
+  fecha     DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  autor Usuario @relation("AutorNoticias", fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@map("noticias")
+}
+
+model Viaje {
+  id                  String   @id @default(cuid())
+  autorId             String
+  destino             String
+  fechaInicio         DateTime
+  fechaFin            DateTime
+  nivelRecomendado    String   // "A1", "A2", "B1", etc.
+  incluyeClases       Boolean  @default(false)
+  precio              Float
+  cupos               Int
+  reservasConfirmadas Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  autor Usuario @relation("AutorViajes", fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@map("viajes")
+}
+
+model Galeria {
+  id        String   @id @default(cuid())
+  autorId   String
+  tipo      String   // "foto", "video"
+  url       String
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  autor Usuario @relation("AutorGaleria", fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@map("galeria")
+}
+
+model SobreNosotros {
+  id        String   @id @default(cuid())
+  autorId   String
+  contenido String
+  imagen    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  autor Usuario @relation("AutorSobreNosotros", fields: [autorId], references: [id], onDelete: Cascade)
+
+  @@map("sobre_nosotros")
+}

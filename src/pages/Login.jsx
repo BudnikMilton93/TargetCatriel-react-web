@@ -3,13 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/pages/login.css';
 
+const dashboardRouteByRole = {
+  profesor: '/dashboard/profesor',
+  alumno: '/dashboard/alumno',
+  marketing: '/dashboard/marketing',
+  admin: '/dashboard/admin',
+  administrador: '/dashboard/admin',
+};
+
 export default function Login() {
-  const [email, setEmail] = useState('profesor@target.com');
+  const [email, setEmail] = useState('maria@target.com');
   const [password, setPassword] = useState('password');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, resolveDashboardPath } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,15 +26,20 @@ export default function Login() {
 
     try {
       const user = await login(email, password);
-      // Redirigir según rol
-      if (user.roles.includes('profesor')) {
-        navigate('/dashboard/profesor');
-      } else if (user.roles.includes('alumno')) {
-        navigate('/dashboard/alumno');
-      } else if (user.roles.includes('admin')) {
-        navigate('/dashboard/admin');
-      } else if (user.roles.includes('marketing')) {
-        navigate('/dashboard/marketing');
+      const availableDashboardPaths = [...new Set(
+        (user.roles || [])
+          .map((role) => dashboardRouteByRole[role])
+          .filter(Boolean)
+      )];
+
+      const dashboardPath = resolveDashboardPath() || availableDashboardPaths[0] || null;
+
+      if (availableDashboardPaths.length === 1 && dashboardPath) {
+        navigate(dashboardPath);
+      } else if (availableDashboardPaths.length > 1) {
+        navigate('/seleccionar-panel');
+      } else if (dashboardPath) {
+        navigate(dashboardPath);
       }
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');
@@ -76,8 +89,8 @@ export default function Login() {
         <div className="demo-users">
           <p className="text-sm">🔑 Usuarios de prueba:</p>
           <ul className="text-xs">
-            <li><strong>Profesor:</strong> profesor@target.com</li>
-            <li><strong>Alumno:</strong> alumno@target.com</li>
+            <li><strong>Profesor:</strong> maria@target.com</li>
+            <li><strong>Alumno:</strong> juan@student.com</li>
             <li><strong>Admin:</strong> admin@target.com</li>
             <li><strong>Marketing:</strong> marketing@target.com</li>
           </ul>

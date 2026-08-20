@@ -1,8 +1,17 @@
 import initialContent from "../data/content.json";
 
 const STORAGE_KEY = "instituto-ingles-content";
+const CONTENT_EVENT = "marketing-content-updated";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
+
+const notifyContentChange = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent(CONTENT_EVENT));
+};
 
 const loadContent = () => {
   const persisted = localStorage.getItem(STORAGE_KEY);
@@ -20,9 +29,24 @@ const loadContent = () => {
 
 const saveContent = (content) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+  notifyContentChange();
 };
 
 export const getContent = () => loadContent();
+
+export const subscribeContent = (callback) => {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  window.addEventListener("storage", callback);
+  window.addEventListener(CONTENT_EVENT, callback);
+
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(CONTENT_EVENT, callback);
+  };
+};
 
 export const resetContent = () => {
   const fresh = clone(initialContent);
