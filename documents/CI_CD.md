@@ -1,5 +1,13 @@
 # CI/CD — GitHub Actions + Vercel
 
+> **Estado actual (MVP):** los workflows de este documento están desactivados a propósito
+> para no consumir los minutos gratis de GitHub Actions mientras el proyecto todavía no
+> tiene una versión estable. Mientras tanto, migraciones y deploy a testing se hacen
+> manualmente (ver abajo). El único proyecto Supabase existente (`Target Catriel`, ref
+> `dfwiqdmnzjxcytkraknk`) se usa como ambiente de testing; cuando haya algo productivo se
+> crea una instancia separada para producción, tal como indica la sección de secrets por
+> ambiente más abajo.
+
 ## Objetivo
 Antes de este pipeline, el proyecto solo corría en local. El objetivo es poder llevar un
 cambio a un ambiente de testing persistente, verificarlo ahí, y recién después promoverlo
@@ -84,3 +92,29 @@ terceros — no son algo que un agente pueda hacer por vos, hacelos en este orde
 11. Probar el flujo completo: push trivial a `staging` → confirmar que
     `deploy-staging.yml` despliega solo → mergear `staging` a `main` → aprobar el gate
     de producción en el Environment.
+
+## Migración y deploy manual a testing (mientras los workflows están desactivados)
+
+1. Copiar `.env.testing.example` a `.env.testing` y completar `DATABASE_URL`/`DIRECT_URL`
+   con los valores reales del proyecto Supabase (Dashboard > Project Settings > Database
+   > Connect). `.env.testing` está gitignoreado — nunca commitear las credenciales.
+2. Aplicar las migraciones pendientes contra testing:
+   ```bash
+   set -a && source .env.testing && set +a && npx prisma migrate deploy
+   ```
+3. Desplegar el frontend/API a Vercel (proyecto `targetcatriel-react-web`, linkeado en
+   `.vercel/project.json`):
+   ```bash
+   npx vercel env pull .env.vercel.testing --environment=preview   # primera vez / si cambian las env vars
+   npx vercel build
+   npx vercel deploy --prebuilt
+   ```
+   Esto genera un deploy tipo *preview* (no `--prod`), que es lo que corresponde a
+   testing. Las env vars `DATABASE_URL`/`DIRECT_URL` de testing también hay que cargarlas
+   en Vercel (Project Settings > Environment Variables > Preview) para que la app las
+   tenga en runtime, no solo el paso de migración.
+
+> Nota: al linkear el proyecto, la Vercel CLI conectó automáticamente el repo de GitHub.
+> Eso significa que Vercel puede estar generando sus propios preview deploys en cada push
+> además de los manuales de acá — revisar Project Settings > Git en Vercel y desactivar
+> el auto-deploy si se quiere que el único disparador sea este flujo manual.

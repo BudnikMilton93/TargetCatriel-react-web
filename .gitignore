@@ -16,9 +16,14 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+.env.testing
 
 # Prisma
 prisma/.migrations
+
+# Supabase
+supabase/.temp
+supabase/.branches
 
 # Editor directories and files
 .vscode/*
@@ -31,3 +36,5 @@ prisma/.migrations
 *.sln
 *.sw?
 
+.vercel
+.env*
